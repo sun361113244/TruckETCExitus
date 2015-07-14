@@ -18,6 +18,8 @@ namespace TruckETCExitus.Model
 
         protected int preAntanaOBUNo = -1;                                                    // 预读中的OBU号
 
+        protected UInt64 preUserCardNo = 0;                                                   // 预读用户卡编号                                                     
+
         protected int trdAntanaOBUNo = -1;                                                    // 交易中的OBU号
 
         protected Location preLoc;
@@ -244,6 +246,11 @@ namespace TruckETCExitus.Model
 
                 if (D2Frame.Count == 128)
                 {
+                    preUserCardNo = D2Frame[21] * ((UInt64)Math.Pow(2, 56)) + D2Frame[22] * ((UInt64)Math.Pow(2, 48))
+                        + D2Frame[23] * ((UInt64)Math.Pow(2, 40)) + D2Frame[24] * ((UInt64)Math.Pow(2, 32))
+                        + D2Frame[25] * ((UInt64)Math.Pow(2, 24)) + D2Frame[26] * ((UInt64)Math.Pow(2, 16))
+                        + D2Frame[27] * ((UInt64)Math.Pow(2, 8)) + D2Frame[28];
+
                     int d1OBUNo = csUnit.Buffer[4] * 16777216 + csUnit.Buffer[5] * 65536
                     + csUnit.Buffer[6] * 256 + csUnit.Buffer[7];
                     if (d1OBUNo == preAntanaOBUNo)
@@ -553,6 +560,9 @@ namespace TruckETCExitus.Model
                     case 0xCD:
                         HandleCDFrame(csUnit, rtb);
                         break;
+                    case 0xCE:
+                        HandleCEFrame(csUnit, rtb);
+                        break;
                     default:
                         UpdateLocSrvMsg(csUnit, "无此帧", Color.OrangeRed, rtb);
                         break;
@@ -563,6 +573,7 @@ namespace TruckETCExitus.Model
                 UpdateLocSrvMsg(csUnit, "异常帧", Color.Purple, rtb);
             }
         }
+       
 
         protected void UpdateLocSrvMsg(CSUnit csUnit, string msg, Color color, RichTextBox rtb)
         {
@@ -724,6 +735,64 @@ namespace TruckETCExitus.Model
             if ((csUnit.Buffer[8] & 1) > 0)
             {
                 ;
+            }            
+        }
+
+        protected void HandleCEFrame(CSUnit csUnit, RichTextBox rtb)
+        {
+            List<byte> CEFrame = ByteFilter.deFilter(csUnit.Buffer);
+            if(CEFrame.Count == Antenna.CE_LENGTH)
+            {
+                UInt64 CEUserCardNo = CEFrame[4] * ((UInt64)Math.Pow(2, 56)) + CEFrame[5] * ((UInt64)Math.Pow(2, 48))
+                        + CEFrame[6] * ((UInt64)Math.Pow(2, 40)) + CEFrame[7] * ((UInt64)Math.Pow(2, 32))
+                        + CEFrame[8] * ((UInt64)Math.Pow(2, 24)) + CEFrame[9] * ((UInt64)Math.Pow(2, 16))
+                        + CEFrame[10] * ((UInt64)Math.Pow(2, 8)) + CEFrame[11];
+                if ((CEFrame[12] & 1) == 0)
+                {
+                    int weightData = 0;
+                    int axleData = 0;
+                    if (Global.exchangeQueue.ContainsUserCardNo(CEUserCardNo))
+                    {
+                        while (Global.exchangeQueue.obuQueue.Count > 0)
+                        {
+                            OBUData obuData = Global.exchangeQueue.obuQueue.Peek();
+                            if (obuData.UserCardNo == CEUserCardNo)
+                            {
+                                weightData = Global.exchangeQueue.vehQueue.Peek().Whole_Weight;
+                                axleData = Global.exchangeQueue.vehQueue.Peek().Axle_Type;
+
+                                break;
+                            }
+                            else
+                            {
+                                Global.exchangeQueue.obuQueue.Dequeue();
+                                Global.exchangeQueue.vehQueue.Dequeue();
+                            }
+                        }
+                    }
+                    byte[] BEFrame = Antenna.createBEFrame(CEUserCardNo, axleData, weightData);
+                    //byte[] BEFrame = Antenna.createBEFrame(11, 11, 12000);
+                    Global.localServer.Send(ByteFilter.enFilter(BEFrame));
+                }
+                else
+                {
+                    if((CEFrame[12] & 1) == 1)
+                    {
+                        if (Global.exchangeQueue.obuQueue.Count > 0 && Global.exchangeQueue.vehQueue.Count > 0)
+                        {
+                            Global.exchangeQueue.obuQueue.Dequeue();
+                            Global.exchangeQueue.vehQueue.Dequeue();
+                        }
+                    }
+                    else
+                    {
+                        UpdateLocSrvMsg(csUnit, "CE STATE异常:" + CEFrame[12], Color.DarkRed, rtb);
+                    }
+                }
+            }
+            else
+            {
+                UpdateLocSrvMsg(csUnit, "CE长度异常:" + CEFrame.Count, Color.DarkRed, rtb);
             }
         }
 

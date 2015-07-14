@@ -9,15 +9,29 @@ namespace TruckETCExitus.Model
     {
         private int obuNum;
 
+        private UInt64 userCardNo = 0;
+        
+
         public OBUData(int Num)
         {
             obuNum = Num;
+        }
+
+        public OBUData(int Num , UInt64 userCardNo)
+        {
+            this.obuNum = Num;
+            this.userCardNo = userCardNo;
         }
 
         public int ObuNum
         {
             get { return obuNum; }
             set { obuNum = value; }
+        }
+        public UInt64 UserCardNo
+        {
+            get { return userCardNo; }
+            set { userCardNo = value; }
         }
 
         public OBUData Clone()

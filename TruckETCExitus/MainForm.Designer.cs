@@ -123,6 +123,8 @@
             this.txtLayoutDes = new System.Windows.Forms.TextBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btnSndBE = new System.Windows.Forms.Button();
+            this.btnSndB9 = new System.Windows.Forms.Button();
             this.btnInitTrdAlarm = new System.Windows.Forms.Button();
             this.rtxtParams = new System.Windows.Forms.RichTextBox();
             this.btnInitRunParams = new System.Windows.Forms.Button();
@@ -133,6 +135,7 @@
             this.tmrConnStat = new System.Windows.Forms.Timer(this.components);
             this.tmrRshRunParams = new System.Windows.Forms.Timer(this.components);
             this.tmrMonitor = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox_logo)).BeginInit();
@@ -1179,6 +1182,9 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.button1);
+            this.tabPage4.Controls.Add(this.btnSndBE);
+            this.tabPage4.Controls.Add(this.btnSndB9);
             this.tabPage4.Controls.Add(this.btnInitTrdAlarm);
             this.tabPage4.Controls.Add(this.rtxtParams);
             this.tabPage4.Controls.Add(this.btnInitRunParams);
@@ -1188,6 +1194,26 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "tabPage4";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // btnSndBE
+            // 
+            this.btnSndBE.Location = new System.Drawing.Point(399, 88);
+            this.btnSndBE.Name = "btnSndBE";
+            this.btnSndBE.Size = new System.Drawing.Size(75, 23);
+            this.btnSndBE.TabIndex = 4;
+            this.btnSndBE.Text = "发送BE";
+            this.btnSndBE.UseVisualStyleBackColor = true;
+            this.btnSndBE.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // btnSndB9
+            // 
+            this.btnSndB9.Location = new System.Drawing.Point(280, 88);
+            this.btnSndB9.Name = "btnSndB9";
+            this.btnSndB9.Size = new System.Drawing.Size(75, 23);
+            this.btnSndB9.TabIndex = 3;
+            this.btnSndB9.Text = "发送B9";
+            this.btnSndB9.UseVisualStyleBackColor = true;
+            this.btnSndB9.Click += new System.EventHandler(this.btnSndB9_Click);
             // 
             // btnInitTrdAlarm
             // 
@@ -1282,6 +1308,16 @@
             this.tmrMonitor.Enabled = true;
             this.tmrMonitor.Interval = 60000;
             this.tmrMonitor.Tick += new System.EventHandler(this.tmrMonitor_Tick);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(502, 88);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 5;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
             // 
             // MainForm
             // 
@@ -1443,5 +1479,8 @@
         private System.Windows.Forms.ToolStripStatusLabel tsslblDllState;
         private System.Windows.Forms.RichTextBox rtxtParams;
         private System.Windows.Forms.Button btnInitTrdAlarm;
+        private System.Windows.Forms.Button btnSndB9;
+        private System.Windows.Forms.Button btnSndBE;
+        private System.Windows.Forms.Button button1;
     }
 }

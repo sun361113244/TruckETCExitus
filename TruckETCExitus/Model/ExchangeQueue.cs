@@ -39,7 +39,7 @@ namespace TruckETCExitus.Model
                 StringBuilder sb = new StringBuilder("");
                 foreach (OBUData elem in obuQueue)
                 {
-                    sb.Append(string.Format("OBU号:{0}\r\n", elem.ObuNum));
+                    sb.Append(string.Format("OBU号:{0},用户卡:{1}\r\n", elem.ObuNum,elem.UserCardNo));
                 }
 
                 return sb.ToString();
@@ -57,6 +57,16 @@ namespace TruckETCExitus.Model
         {
             obuQueue.Clear();
             vehQueue.Clear();
+        }
+
+        public bool ContainsUserCardNo(ulong userCardNo)
+        {
+            foreach(OBUData elem in this.obuQueue)
+            {
+                if (elem.UserCardNo == userCardNo)
+                    return true;
+            }
+            return false;
         }
     }
 }

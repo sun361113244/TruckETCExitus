@@ -625,39 +625,46 @@ namespace TruckETCExitus
 
         private void tmrRshRunParams_Tick(object sender, EventArgs e)
         {
-            if (InitParams.UIEnabled)
+            try
             {
-                switch (Global.prdAlartStat1)
+                if (InitParams.UIEnabled)
                 {
-                    case Global.AlartStat.NonAlarmed:
-                        pctprdAlartStat.Image = TruckETCExitus.Properties.Resources.green;
-                        break;
-                    case Global.AlartStat.Alarmed:
-                        pctprdAlartStat.Image = TruckETCExitus.Properties.Resources.red;
-                        break;
-                    default:
-                        pctprdAlartStat.Image = null;
-                        break;
-                }
+                    switch (Global.prdAlartStat1)
+                    {
+                        case Global.AlartStat.NonAlarmed:
+                            pctprdAlartStat.Image = TruckETCExitus.Properties.Resources.green;
+                            break;
+                        case Global.AlartStat.Alarmed:
+                            pctprdAlartStat.Image = TruckETCExitus.Properties.Resources.red;
+                            break;
+                        default:
+                            pctprdAlartStat.Image = null;
+                            break;
+                    }
 
-                switch (Global.trdAlartStat1)
-                {
-                    case Global.AlartStat.NonAlarmed:
-                        pctTrdAlartStat.Image = TruckETCExitus.Properties.Resources.green;
-                        break;
-                    case Global.AlartStat.Alarmed:
-                        pctTrdAlartStat.Image = TruckETCExitus.Properties.Resources.red;
-                        break;
-                    default:
-                        pctTrdAlartStat.Image = null;
-                        break;
-                }
-                txtPreQueue.Text = Global.preQueue.GetOBUQueueString() + Global.preQueue.GetVehQueueString();
-                txtTrdQueue.Text = Global.exchangeQueue.GetOBUQueueString() + Global.exchangeQueue.GetVehQueueString();
-                textBox2.Text = showObuData(Global.preOBUQueue);
+                    switch (Global.trdAlartStat1)
+                    {
+                        case Global.AlartStat.NonAlarmed:
+                            pctTrdAlartStat.Image = TruckETCExitus.Properties.Resources.green;
+                            break;
+                        case Global.AlartStat.Alarmed:
+                            pctTrdAlartStat.Image = TruckETCExitus.Properties.Resources.red;
+                            break;
+                        default:
+                            pctTrdAlartStat.Image = null;
+                            break;
+                    }
+                    txtPreQueue.Text = Global.preQueue.GetOBUQueueString() + Global.preQueue.GetVehQueueString();
+                    txtTrdQueue.Text = Global.exchangeQueue.GetOBUQueueString() + Global.exchangeQueue.GetVehQueueString();
+                    textBox2.Text = showObuData(Global.preOBUQueue);
 
-                truckETCContext.HandleShowRunParams(rtxtParams);
+                    truckETCContext.HandleShowRunParams(rtxtParams);
+                }
             }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }           
 
         }
 
@@ -669,7 +676,7 @@ namespace TruckETCExitus
                 StringBuilder sb = new StringBuilder("");
                 foreach (OBUData elem in obuQueue)
                 {
-                    sb.Append(string.Format("OBU号:{0}\r\n", elem.ObuNum));
+                    sb.Append(string.Format("OBU号:{0},用户卡号:{1}\r\n", elem.ObuNum,elem.UserCardNo));
                 }
 
                 return sb.ToString();
@@ -715,6 +722,47 @@ namespace TruckETCExitus
 
             string res = string.Format("cpu使用量:{0}::内存使用量:{1}::线程数:{2}", cpuVol, memery, threadcount);
             LogTools.WriteSystemMonitorLog(res);
+        }
+
+        private void btnSndB9_Click(object sender, EventArgs e)
+        {
+            byte[] b9frame = Antenna.createB9Frame(0x0d, 0, 0, 0, 1);
+            Global.localServer.Send(b9frame);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            byte[] BEframe = new byte[18];
+            BEframe[0] = 0xFF;
+            BEframe[1] = 0xFF;
+            BEframe[2] = 0x0D;                                                  //串口帧序列号
+            BEframe[3] = 0xBE;                                                   //数据帧类型
+
+            BEframe[4] = 0;                                              //执行状态码
+            BEframe[5] = 0;                                                     //预读队列
+            BEframe[6] = 0;                             //预读状态列表
+            BEframe[7] = 0;                                 //预读状态列表
+            BEframe[8] = 0;                                              //执行状态码
+            BEframe[9] = 0;                                                     //预读队列
+            BEframe[10] = 0;                             //预读状态列表
+            BEframe[11] = 0;                                 //预读状态列表
+
+            BEframe[12] = Convert.ToByte(157 / 255 % 255);                       // 货车辆轴组
+            BEframe[13] = Convert.ToByte(157 % 255);                             // 货车辆轴组
+
+            BEframe[14] = Convert.ToByte(2000 / 10 / 255 % 255);               // 货车重量
+            BEframe[15] = Convert.ToByte(2000 / 10 % 255);                     // 货车重量
+
+            BEframe[16] = SystemUnit.Get_CheckXor(BEframe, BEframe.Length);       //BCC
+            BEframe[17] = 0xFF;
+
+            Global.localServer.Send(BEframe);
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            double res = Math.Pow(2,56);
+            MessageBox.Show(res.ToString());
         }   
 
     }

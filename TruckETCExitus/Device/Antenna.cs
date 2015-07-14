@@ -28,12 +28,22 @@ namespace TruckETCExitus.Device
         /// <summary>
         /// B9帧数据长度
         /// </summary>
-        public static int B9_LENGTH = 10;                                           
+        public static int B9_LENGTH = 12;
+
+        /// <summary>
+        /// BE帧数据长度
+        /// </summary>
+        public static int BE_LENGTH = 18;                             
 
         /// <summary>
         /// C1帧数据长度
         /// </summary>
         public static int C1_LENGTH = 10;
+
+        /// <summary>
+        /// CE帧数据长度
+        /// </summary>
+        public static int CE_LENGTH = 15;
 
         /// <summary>
         /// D0帧数据长度
@@ -145,7 +155,7 @@ namespace TruckETCExitus.Device
             cli.clientConnHandler = ClientConnHandler;
             cli.recvDataHandler = RecvDataHandler;
 
-            tmrBreakInterval.Interval = 10000;
+            tmrBreakInterval.Interval = 100000;
             tmrBreakInterval.Enabled = true;
             tmrBreakInterval.Elapsed += new System.Timers.ElapsedEventHandler(tmrbreakIntervalElapsed);
         }
@@ -307,10 +317,10 @@ namespace TruckETCExitus.Device
             Array.ConstrainedCopy(B2Frame, 126, B4Frame, 103, 24);                      // 0009文件
             //Array.ConstrainedCopy(B2Frame, 37, B4Frame, 14, 113);                     // 预读B2帧信息
 
-            B4Frame[127] = Convert.ToByte(Axle_Type / 255 % 255);                       // 货车辆轴组
-            B4Frame[128] = Convert.ToByte(Axle_Type % 255);                             // 货车辆轴组
-            B4Frame[129] = Convert.ToByte(Whole_Weight / 10 / 255 % 255);               // 货车重量
-            B4Frame[130] = Convert.ToByte(Whole_Weight / 10 % 255);                     // 货车重量
+            B4Frame[127] = Convert.ToByte(Axle_Type / 256 % 256);                       // 货车辆轴组
+            B4Frame[128] = Convert.ToByte(Axle_Type % 256);                             // 货车辆轴组
+            B4Frame[129] = Convert.ToByte(Whole_Weight / 10 / 256 % 256);               // 货车重量
+            B4Frame[130] = Convert.ToByte(Whole_Weight / 10 % 256);                     // 货车重量
             B4Frame[131] = SystemUnit.Get_CheckXor(B4Frame, B4Frame.Length);            // BCC
             B4Frame[132] = Antenna.eof[0];
 
@@ -335,13 +345,49 @@ namespace TruckETCExitus.Device
             b9frame[3] = 0xB9;                                                   //数据帧类型
             b9frame[4] = errorCode;                                              //执行状态码
             b9frame[5] = N1;                                                     //预读队列
-            b9frame[6] = ReserveA;                             //预读状态列表
-            b9frame[7] = ReserveB;                                 //预读状态列表
 
+            b9frame[6] = 0x00;                             //预读状态列表
+            b9frame[7] = ReserveA;                                 //预读状态列表
 
-            b9frame[8] = SystemUnit.Get_CheckXor(b9frame, b9frame.Length);       //BCC
-            b9frame[9] = 0xFF;
+            b9frame[8] = 0x00;                             //预读状态列表
+            b9frame[9] = ReserveB;                                 //预读状态列表
+
+            b9frame[10] = SystemUnit.Get_CheckXor(b9frame, b9frame.Length);       //BCC
+            b9frame[11] = 0xFF;
             return b9frame;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="CEUserCardNo">用户卡编号</param>
+        /// <param name="axleData">车型</param>
+        /// <param name="weightData">重量</param>
+        /// <returns></returns>
+        public static byte[] createBEFrame(ulong CEUserCardNo, int axleData, int weightData)
+        {
+            byte[] BEframe = new byte[Antenna.BE_LENGTH];
+            BEframe[0] = 0xFF;
+            BEframe[1] = 0xFF;
+            BEframe[2] = 0x01;                                                              //串口帧序列号
+            BEframe[3] = 0xBE;                                                              //数据帧类型
+
+            BEframe[4] = Convert.ToByte(CEUserCardNo / ((UInt64)Math.Pow(2, 56)) % 256);    //用户卡编号
+            BEframe[5] = Convert.ToByte(CEUserCardNo / ((UInt64)Math.Pow(2, 48)) % 256);    //用户卡编号
+            BEframe[6] = Convert.ToByte(CEUserCardNo / ((UInt64)Math.Pow(2, 40)) % 256);    //用户卡编号
+            BEframe[7] = Convert.ToByte(CEUserCardNo / ((UInt64)Math.Pow(2, 32)) % 256);    //用户卡编号
+            BEframe[8] = Convert.ToByte(CEUserCardNo / ((UInt64)Math.Pow(2, 24)) % 256);    //用户卡编号
+            BEframe[9] = Convert.ToByte(CEUserCardNo / ((UInt64)Math.Pow(2, 16)) % 256);    //用户卡编号
+            BEframe[10] = Convert.ToByte(CEUserCardNo / ((UInt64)Math.Pow(2, 8)) % 256);    //用户卡编号
+            BEframe[11] = Convert.ToByte(CEUserCardNo % 256);                               //用户卡编号
+
+            BEframe[12] = Convert.ToByte(axleData / 256 % 256);                             // 货车辆轴组
+            BEframe[13] = Convert.ToByte(axleData % 256);                                   // 货车辆轴组
+            BEframe[14] = Convert.ToByte(weightData / 10 / 256 % 256);                      // 货车重量
+            BEframe[15] = Convert.ToByte(weightData / 10 % 256);                            // 货车重量
+
+            BEframe[16] = SystemUnit.Get_CheckXor(BEframe, BEframe.Length);                 //BCC
+            BEframe[17] = 0xFF;
+            return BEframe;
         }
     }
 }

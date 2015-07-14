@@ -308,6 +308,9 @@ namespace TruckETCExitus.Model
                     case 0xCD:
                         HandleCDFrame(csUnit, rtb);
                         break;
+                    case 0xCE:
+                        HandleCEFrame(csUnit, rtb);
+                        break;
                     default:
                         UpdateLocSrvMsg(csUnit, "无此帧", Color.OrangeRed, rtb);
                         break;
@@ -318,6 +321,7 @@ namespace TruckETCExitus.Model
                 UpdateLocSrvMsg(csUnit, "异常帧", Color.Purple, rtb);
             }
         }
+       
 
         protected override void HandleC1Frame(CSUnit csUnit, RichTextBox rtb)
         {
@@ -442,7 +446,7 @@ namespace TruckETCExitus.Model
         }
         protected override void PreProcessSucess(int c1OBUNo)
         {
-            Global.preOBUQueue.Enqueue(new OBUData(c1OBUNo));
+            Global.preOBUQueue.Enqueue(new OBUData(c1OBUNo ,preUserCardNo));
         }
 
         protected override void HandleCDFrame(CSUnit csUnit, RichTextBox rtb)
@@ -623,7 +627,7 @@ namespace TruckETCExitus.Model
                     if (Global.preOBUQueue.Count > 0)//允许放行的车辆数为0
                     {
                         byte[] b9frame = Antenna.createB9Frame(0x0d, 0, 2, 0, 0);
-                        //Global.localServer.Send(b9frame);
+                        Global.localServer.Send(b9frame);
                     }
                     while (Global.preOBUQueue.Count > 0)
                     {
@@ -638,7 +642,7 @@ namespace TruckETCExitus.Model
                         if (Global.preOBUQueue.Count > 1)//允许放行的车辆数为1
                         {
                             byte[] b9frame = Antenna.createB9Frame(0x0d, 0, 1, 0, 0);
-                            //Global.localServer.Send(b9frame);
+                            Global.localServer.Send(b9frame);
                             OBUData firstOub = Global.preOBUQueue.Dequeue();
                             while (Global.preOBUQueue.Count > 0)
                             {
